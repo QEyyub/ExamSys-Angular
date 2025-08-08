@@ -1,0 +1,80 @@
+.student-container {
+  width: 100vw;
+  height: 100vh;
+  padding: 20px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+
+  h2 {
+    margin-bottom: 10px;
+  }
+
+  table {
+    width: 100%;
+    overflow: auto;
+    margin-bottom: 10px;
+  }
+
+  .full-width {
+    width: 100%;
+  }
+
+  .loading, .error, .no-data {
+    margin-top: 10px;
+    font-weight: bold;
+    text-align: center;
+  }
+
+  .error {
+    color: #f44336;
+  }
+
+  .no-data {
+    color: #777;
+  }
+
+  .form-container {
+    margin-top: 20px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #fafafa;
+    max-width: 600px;
+
+    h3 {
+      margin-bottom: 15px;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+
+      mat-form-field {
+        margin-bottom: 15px;
+      }
+
+      .form-buttons {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+      }
+    }
+  }
+
+  .add-button {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 10;
+  }
+
+  @media (max-width: 768px) {
+    padding: 10px;
+
+    .form-container {
+      max-width: 100%;
+      padding: 10px;
+    }
+  }
+}

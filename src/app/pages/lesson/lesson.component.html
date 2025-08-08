@@ -1,0 +1,33 @@
+<div class="lesson-container">
+
+  <h2>Dərslər Siyahısı</h2>
+
+  <div *ngIf="loading">Yüklənir...</div>
+  <div *ngIf="error" class="error">{{ error }}</div>
+
+  <table *ngIf="!loading && !error && lessons.length > 0" class="lesson-table">
+    <thead>
+      <tr>
+        <th>Kod</th>
+        <th>Ad</th>
+        <th>Sinif</th>
+        <th>Müəllim Adı</th>
+        <th>Müəllim Soyadı</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let lesson of lessons">
+        <td>{{ lesson.code }}</td>
+        <td>{{ lesson.name }}</td>
+        <td>{{ lesson.class }}</td>
+        <td>{{ lesson.teacherFirstName }}</td>
+        <td>{{ lesson.teacherLastName }}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div *ngIf="!loading && !error && lessons.length === 0">
+    Heç bir dərs tapılmadı.
+  </div>
+
+</div>

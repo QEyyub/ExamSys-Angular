@@ -1,0 +1,31 @@
+<div class="dashboard-container">
+    <div class="sidebar" [class.open]="sidebarOpen">
+      <button class="toggle-btn" (click)="toggleSidebar()">
+        <i class="fas" [class.fa-bars]="!sidebarOpen" [class.fa-times]="sidebarOpen"></i>
+      </button>
+<ul>
+  <li (click)="onMenuClick('Lesson')">
+    <i class="fas fa-book"></i> Lesson
+  </li>
+  <li (click)="onMenuClick('Student')">
+    <i class="fas fa-user-graduate"></i> Student
+  </li>
+  <li (click)="onMenuClick('Exam')">
+    <i class="fas fa-file-alt"></i> Exam
+  </li>
+</ul>
+
+    </div>
+
+    <div class="main-content">
+      <nav class="navbar">
+        <div class="logo">
+          <i class="fas fa-brain"></i>
+          Imtahan Proqramı  
+        </div>
+      </nav>
+      <div class="content">
+        <router-outlet></router-outlet>
+      </div>
+    </div>
+</div>

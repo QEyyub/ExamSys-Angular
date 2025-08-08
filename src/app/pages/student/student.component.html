@@ -1,0 +1,100 @@
+<div class="student-container">
+
+  <h2>Şagirdlər Siyahısı</h2>
+
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>Axtarış</mat-label>
+    <input matInput (keyup)="applyFilter($event)" placeholder="Axtar...">
+  </mat-form-field>
+
+  <table mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8 full-width">
+
+    <!-- Nömrə -->
+    <ng-container matColumnDef="number">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Nömrə</th>
+      <td mat-cell *matCellDef="let student">{{student.number}}</td>
+    </ng-container>
+
+    <!-- Adı -->
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Adı</th>
+      <td mat-cell *matCellDef="let student">{{student.name}}</td>
+    </ng-container>
+
+    <!-- Soyadı -->
+    <ng-container matColumnDef="surname">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Soyadı</th>
+      <td mat-cell *matCellDef="let student">{{student.surname}}</td>
+    </ng-container>
+
+    <!-- Sinfi -->
+    <ng-container matColumnDef="class">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Sinfi</th>
+      <td mat-cell *matCellDef="let student">{{student.class}}</td>
+    </ng-container>
+
+    <!-- Əməliyyatlar -->
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef>Əməliyyatlar</th>
+      <td mat-cell *matCellDef="let student">
+        <button mat-mini-fab color="primary" aria-label="Redaktə" (click)="onEdit(student)">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button mat-mini-fab color="warn" aria-label="Sil" (click)="onDelete(student.number)">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+
+  <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
+
+  <div *ngIf="loading" class="loading">Yüklənir...</div>
+  <div *ngIf="error" class="error">{{ error }}</div>
+  <div *ngIf="!loading && !error && dataSource.data.length === 0" class="no-data">Şagird məlumatı tapılmadı.</div>
+
+  <!-- FORM: Modal kimi deyil, sadə görünür, istəsən modal edə bilərik -->
+  <div class="form-container" *ngIf="showForm">
+    <h3>{{ isEditMode ? 'Şagirdi Redaktə Et' : 'Yeni Şagird Əlavə Et' }}</h3>
+    <form (ngSubmit)="onSubmit()" #studentForm="ngForm" novalidate>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Nömrə</mat-label>
+        <input matInput name="number" type="number" min="1" [(ngModel)]="selectedStudent.number" required [readonly]="isEditMode">
+        <mat-error *ngIf="studentForm.submitted && (!selectedStudent.number || selectedStudent.number < 1)">Doğru nömrə daxil edin</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Adı</mat-label>
+        <input matInput name="name" [(ngModel)]="selectedStudent.name" required>
+        <mat-error *ngIf="studentForm.submitted && !selectedStudent.name">Ad daxil edin</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Soyadı</mat-label>
+        <input matInput name="surname" [(ngModel)]="selectedStudent.surname" required>
+        <mat-error *ngIf="studentForm.submitted && !selectedStudent.surname">Soyad daxil edin</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Sinfi</mat-label>
+        <input matInput name="class" type="number" min="1" [(ngModel)]="selectedStudent.class" required>
+        <mat-error *ngIf="studentForm.submitted && (!selectedStudent.class || selectedStudent.class < 1)">Doğru sinif daxil edin</mat-error>
+      </mat-form-field>
+
+      <div class="form-buttons">
+        <button mat-raised-button color="primary" type="submit">{{ isEditMode ? 'Yenilə' : 'Əlavə Et' }}</button>
+        <button mat-button type="button" (click)="onCancel()">İmtina</button>
+      </div>
+
+    </form>
+  </div>
+
+  <button mat-fab color="primary" class="add-button" aria-label="Yeni Şagird" (click)="onAddNew()">
+    <mat-icon>add</mat-icon>
+  </button>
+
+</div>
