@@ -1,69 +1,51 @@
 <div class="exam-container">
 
-  <div class="header-with-button">
-    <h2>İmtahanlar Siyahısı</h2>
-    <button mat-raised-button color="primary" (click)="openCreateModal()">
-      Yeni İmtahan Əlavə Et
-    </button>
-  </div>
+  <h2>İmtahanlar Siyahısı</h2>
 
-  <mat-form-field appearance="outline" class="full-width">
+  <button mat-raised-button color="primary" (click)="openCreateModal()">Yeni İmtahan Əlavə Et</button>
+
+  <mat-form-field appearance="outline" style="margin-left: 16px; width: 300px;">
     <mat-label>Axtarış</mat-label>
-    <input matInput (keyup)="applyFilter($event)" placeholder="Axtar...">
+    <input matInput (keyup)="applyFilter($event)" placeholder="Axtarış...">
   </mat-form-field>
 
-  <table mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8 full-width">
+  <div *ngIf="loading" style="margin-top: 20px;">Yüklənir...</div>
+  <div *ngIf="error" class="error" style="color:red; margin-top: 20px;">{{ error }}</div>
 
-    <!-- Dərs Kodu -->
+  <table mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8" *ngIf="!loading && !error">
+
+    <!-- Lesson Code -->
     <ng-container matColumnDef="lessonCode">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>Dərs Kodu</th>
-      <td mat-cell *matCellDef="let exam">{{ exam.lessonCode }}</td>
+      <td mat-cell *matCellDef="let element">{{ element.lessonCode }}</td>
     </ng-container>
 
-    <!-- Dərs Adı -->
-    <ng-container matColumnDef="lessonName">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header>Dərs Adı</th>
-      <td mat-cell *matCellDef="let exam">{{ exam.lessonName }}</td>
-    </ng-container>
-
-    <!-- Sinif -->
-    <ng-container matColumnDef="class">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header>Sinif</th>
-      <td mat-cell *matCellDef="let exam">{{ exam.class }}</td>
-    </ng-container>
-
-    <!-- Şagird Nömrəsi -->
+    <!-- Student Number -->
     <ng-container matColumnDef="studentNumber">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header>Şagird Nömrəsi</th>
-      <td mat-cell *matCellDef="let exam">{{ exam.studentNumber }}</td>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Şagird No</th>
+      <td mat-cell *matCellDef="let element">{{ element.studentNumber }}</td>
     </ng-container>
 
-    <!-- Şagird Adı -->
-    <ng-container matColumnDef="studentName">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header>Şagird Adı</th>
-      <td mat-cell *matCellDef="let exam">{{ exam.studentName }}</td>
-    </ng-container>
-
-    <!-- Şagird Soyadı -->
-    <ng-container matColumnDef="studentSurname">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header>Şagird Soyadı</th>
-      <td mat-cell *matCellDef="let exam">{{ exam.studentSurname }}</td>
-    </ng-container>
-
-    <!-- İmtahan Tarixi -->
+    <!-- Exam Date -->
     <ng-container matColumnDef="examDate">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>İmtahan Tarixi</th>
-      <td mat-cell *matCellDef="let exam">{{ formatDate(exam.examDate) }}</td>
+      <td mat-cell *matCellDef="let element">{{ element.examDate | date }}</td>
     </ng-container>
 
-    <!-- Əməliyyatlar -->
+    <!-- Grade -->
+    <ng-container matColumnDef="grade">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Qiymət</th>
+      <td mat-cell *matCellDef="let element">{{ element.grade }}</td>
+    </ng-container>
+
+    <!-- Actions -->
     <ng-container matColumnDef="actions">
       <th mat-header-cell *matHeaderCellDef>Əməliyyatlar</th>
-      <td mat-cell *matCellDef="let exam">
-        <button mat-mini-fab color="primary" aria-label="Redaktə" (click)="onEdit(exam)">
+      <td mat-cell *matCellDef="let element">
+        <button mat-icon-button color="primary" (click)="openEditModal(element)">
           <mat-icon>edit</mat-icon>
         </button>
-        <button mat-mini-fab color="warn" aria-label="Sil" (click)="onDelete( exam.studentNumber)">
+        <button mat-icon-button color="warn" (click)="deleteExam(element.id)">
           <mat-icon>delete</mat-icon>
         </button>
       </td>
@@ -71,73 +53,62 @@
 
     <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
     <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-
   </table>
 
   <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
 
-  <div *ngIf="loading" class="loading">Yüklənir...</div>
-  <div *ngIf="error" class="error">{{ error }}</div>
-  <div *ngIf="!loading && !error && dataSource.data.length === 0" class="no-data">İmtahan məlumatı tapılmadı.</div>
+  <!-- Modal -->
+<!-- Modal -->
+<div class="modal" *ngIf="isModalOpen">
+  <div class="modal-content">
+    <h3>{{ isEditMode ? 'İmtahanı Yenilə' : 'Yeni İmtahan Əlavə Et' }}</h3>
 
-  <!-- Modal Overlay -->
-  <div class="modal-overlay" *ngIf="isModalOpen" (click)="closeModal()"></div>
+    <!-- ✅ Hata mesajını modal içinde göster -->
+    <div *ngIf="error" style="color: red; margin-bottom: 10px;">
+      {{ error }}
+    </div>
 
-  <!-- Modal Form -->
-  <div class="form-container modal" *ngIf="isModalOpen" (click)="$event.stopPropagation()">
-    <h3>{{ isEditMode ? 'İmtahanı Redaktə Et' : 'Yeni İmtahan Əlavə Et' }}</h3>
-    <form (ngSubmit)="onSubmit()" #examForm="ngForm" novalidate>
+    <form (ngSubmit)="onSubmit()">
 
-      <mat-form-field appearance="outline" class="full-width">
+      <!-- Ders Kodu Dropdown -->
+      <mat-form-field appearance="fill" style="width: 100%;">
         <mat-label>Dərs Kodu</mat-label>
-        <input matInput name="lessonCode" [(ngModel)]="selectedExam.lessonCode" required [readonly]="isEditMode">
-        <mat-error *ngIf="examForm.submitted && !selectedExam.lessonCode">Dərs Kodu daxil edin</mat-error>
+        <mat-select [(ngModel)]="selectedExam.lessonCode" name="lessonCode" required>
+          <mat-option *ngFor="let code of validLessonCodes" [value]="code">
+            {{ code }}
+          </mat-option>
+        </mat-select>
       </mat-form-field>
 
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Dərs Adı</mat-label>
-        <input matInput name="lessonName" [(ngModel)]="selectedExam.lessonName" required>
-        <mat-error *ngIf="examForm.submitted && !selectedExam.lessonName">Dərs Adı daxil edin</mat-error>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Sinif</mat-label>
-        <input matInput name="class" type="number" min="1" [(ngModel)]="selectedExam.grade" required>
-        <mat-error *ngIf="examForm.submitted && (!selectedExam.grade || selectedExam.grade < 1)">Doğru sinif daxil edin</mat-error>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="full-width">
+      <!-- Öğrenci Numarası Dropdown -->
+      <mat-form-field appearance="fill" style="width: 100%;">
         <mat-label>Şagird Nömrəsi</mat-label>
-        <input matInput name="studentNumber" type="number" min="1" [(ngModel)]="selectedExam.studentNumber" required [readonly]="isEditMode">
-        <mat-error *ngIf="examForm.submitted && (!selectedExam.studentNumber || selectedExam.studentNumber < 1)">Doğru nömrə daxil edin</mat-error>
+        <mat-select [(ngModel)]="selectedExam.studentNumber" name="studentNumber" required>
+          <mat-option *ngFor="let num of validStudentNumbers" [value]="num">
+            {{ num }}
+          </mat-option>
+        </mat-select>
       </mat-form-field>
 
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Şagird Adı</mat-label>
-        <input matInput name="studentName" [(ngModel)]="selectedExam.studentName" required>
-        <mat-error *ngIf="examForm.submitted && !selectedExam.studentName">Ad daxil edin</mat-error>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Şagird Soyadı</mat-label>
-        <input matInput name="studentSurname" [(ngModel)]="selectedExam.studentSurname" required>
-        <mat-error *ngIf="examForm.submitted && !selectedExam.studentSurname">Soyad daxil edin</mat-error>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="full-width">
+      <!-- İmtahan Tarihi -->
+      <mat-form-field appearance="fill" style="width: 100%;">
         <mat-label>İmtahan Tarixi</mat-label>
-        <input matInput [matDatepicker]="picker" name="examDate" [(ngModel)]="selectedExam.examDate" required>
-        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-        <mat-datepicker #picker></mat-datepicker>
-        <mat-error *ngIf="examForm.submitted && !selectedExam.examDate">Tarix daxil edin</mat-error>
+        <input matInput type="date" [(ngModel)]="selectedExam.examDate" name="examDate" required>
       </mat-form-field>
 
-      <div class="form-buttons">
-        <button mat-raised-button color="primary" type="submit">{{ isEditMode ? 'Yenilə' : 'Əlavə Et' }}</button>
-        <button mat-button type="button" (click)="closeModal()">İmtina</button>
-      </div>
+      <!-- Not -->
+      <mat-form-field appearance="fill" style="width: 100%;">
+        <mat-label>Qiymət</mat-label>
+        <input matInput type="number" [(ngModel)]="selectedExam.grade" name="grade" required min="0" max="100">
+      </mat-form-field>
 
+      <div style="margin-top: 16px; text-align: right;">
+        <button mat-stroked-button color="primary" type="submit">{{ isEditMode ? 'Yenilə' : 'Əlavə Et' }}</button>
+        <button mat-button type="button" (click)="closeModal()">Ləğv et</button>
+      </div>
     </form>
   </div>
+</div>
+
 
 </div>

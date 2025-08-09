@@ -5,6 +5,8 @@ import { Exam } from '../../models/exam.model';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatSort } from '@angular/material/sort';
+import { catchError } from 'rxjs/operators';
+import { of } from 'rxjs';
 
 @Component({
   selector: 'app-exam',
@@ -13,19 +15,20 @@ import { MatSort } from '@angular/material/sort';
 })
 export class ExamComponent implements OnInit, AfterViewInit {
 
-  displayedColumns: string[] = [
-    'lessonCode', 'lessonName', 'grade', 'studentNumber',
-    'studentName', 'studentSurname', 'examDate', 'actions'
-  ];
+  displayedColumns: string[] = ['lessonCode', 'studentNumber', 'examDate', 'grade', 'actions'];
   dataSource = new MatTableDataSource<Exam>();
 
   loading = false;
   error = '';
+  success = '';
 
   selectedExam: Exam = this.getEmptyExam();
   isEditMode = false;
+  isModalOpen = false;
 
-  isModalOpen = false; // Modal açar bağlayıcı
+  // ✅ Eklendi: geçerli lesson ve student listeleri
+  validLessonCodes: string[] = [];
+  validStudentNumbers: number[] = [];
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -34,6 +37,7 @@ export class ExamComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.loadExams();
+    this.loadValidData(); // ✅ Eklendi
   }
 
   ngAfterViewInit(): void {
@@ -43,45 +47,48 @@ export class ExamComponent implements OnInit, AfterViewInit {
     this.dataSource.filterPredicate = (data: Exam, filter: string) => {
       const dataStr = (
         data.lessonCode + ' ' +
-        (data.lessonName ?? '') + ' ' +
-        data.grade + ' ' +
         data.studentNumber + ' ' +
-        (data.studentName ?? '') + ' ' +
-        (data.studentSurname ?? '')
+        data.examDate + ' ' +
+        data.grade
       ).toLowerCase();
       return dataStr.indexOf(filter) !== -1;
     };
   }
 
+  loadValidData(): void {
+    this.examService.getLessonCodes().subscribe({
+      next: (codes) => this.validLessonCodes = codes,
+      error: (err) => console.error('Ders kodları yüklenemedi', err)
+    });
+
+    this.examService.getStudentNumbers().subscribe({
+      next: (nums) => this.validStudentNumbers = nums,
+      error: (err) => console.error('Öğrenci numaraları yüklenemedi', err)
+    });
+  }
+
   loadExams(): void {
     this.loading = true;
-    this.error = '';
-    this.examService.getAll().subscribe({
-      next: (data) => {
-        this.dataSource.data = data;
-        this.loading = false;
-      },
-      error: (err) => {
-        this.error = 'İmtahan məlumatlarını gətirmək mümkün olmadı.';
+    this.clearMessages();
+    this.examService.getAll().pipe(
+      catchError(err => {
+        this.error = 'İmtahanları gətirmək mümkün olmadı.';
         console.error(err);
         this.loading = false;
-      }
+        return of([]);
+      })
+    ).subscribe(data => {
+      this.dataSource.data = data;
+      this.loading = false;
     });
   }
 
   applyFilter(event: Event): void {
     const filterValue = (event.target as HTMLInputElement).value.trim().toLowerCase();
     this.dataSource.filter = filterValue;
-
     if (this.dataSource.paginator) {
       this.dataSource.paginator.firstPage();
     }
-  }
-
-  formatDate(dateString: string): string {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('az-AZ', { year: 'numeric', month: 'long', day: 'numeric' });
   }
 
   getEmptyExam(): Exam {
@@ -89,17 +96,22 @@ export class ExamComponent implements OnInit, AfterViewInit {
       id: 0,
       lessonCode: '',
       studentNumber: 0,
-      examDate: new Date().toISOString().substring(0, 10), // YYYY-MM-DD
-      grade: 0,
-      lessonName: '',
-      studentName: '',
-      studentSurname: ''
+      examDate: '',
+      grade: 0
     };
   }
 
   openCreateModal(): void {
+    this.clearMessages();
     this.selectedExam = this.getEmptyExam();
     this.isEditMode = false;
+    this.isModalOpen = true;
+  }
+
+  openEditModal(exam: Exam): void {
+    this.clearMessages();
+    this.selectedExam = { ...exam };
+    this.isEditMode = true;
     this.isModalOpen = true;
   }
 
@@ -113,62 +125,81 @@ export class ExamComponent implements OnInit, AfterViewInit {
     if (this.isEditMode) {
       this.updateExam();
     } else {
-      this.addExam();
+      this.createExam();
     }
   }
 
-  addExam(): void {
-    this.examService.create(this.selectedExam).subscribe({
-      next: (newExam) => {
-        this.dataSource.data = [...this.dataSource.data, newExam];
+  createExam(): void {
+    this.clearMessages();
+
+    if (!this.validLessonCodes.includes(this.selectedExam.lessonCode)) {
+      this.error = 'Böyle bir ders kodu bulunamadı.';
+      return;
+    }
+    if (!this.validStudentNumbers.includes(this.selectedExam.studentNumber)) {
+      this.error = 'Böyle bir öğrenci numarası bulunamadı.';
+      return;
+    }
+
+    const payload = {
+      lessonCode: this.selectedExam.lessonCode,
+      studentNumber: this.selectedExam.studentNumber,
+      examDate: this.selectedExam.examDate,
+      grade: this.selectedExam.grade
+    };
+
+    this.examService.create(payload as Exam).subscribe({
+      next: (res) => {
+        alert(res || 'İmtahan əlavə edildi');
+        this.loadExams();
         this.closeModal();
       },
       error: (err) => {
-        this.error = 'İmtahan əlavə etmək mümkün olmadı.';
+        if (err.error && err.error.message) {
+          this.error = err.error.message;
+        } else {
+          this.error = 'İmtahan əlavə etmək mümkün olmadı.';
+        }
         console.error(err);
       }
     });
   }
 
   updateExam(): void {
-    this.examService.update(this.selectedExam.id, this.selectedExam).subscribe({
-      next: () => {
-        const data = this.dataSource.data;
-        const index = data.findIndex(e => e.id === this.selectedExam.id);
-        if (index !== -1) {
-          data[index] = { ...this.selectedExam };
-          this.dataSource.data = [...data];
-        }
+    this.examService.update(this.selectedExam).subscribe({
+      next: (res) => {
+        alert(res || 'İmtahan yeniləndi');
+        this.loadExams();
         this.closeModal();
       },
       error: (err) => {
-        this.error = 'İmtahan yeniləmək mümkün olmadı.';
+        if (err.error && err.error.message) {
+          this.error = err.error.message;
+        } else {
+          this.error = 'İmtahan yeniləmək mümkün olmadı.';
+        }
         console.error(err);
       }
     });
   }
 
-  onEdit(exam: Exam): void {
-    this.selectedExam = { ...exam };
-    this.isEditMode = true;
-    this.isModalOpen = true;
-  }
-
-  onCancel(): void {
-    this.closeModal();
-  }
-
-  onDelete(id: number): void {
-    if (confirm('Silmək istədiyinizə əminsiniz?')) {
+  deleteExam(id: number): void {
+    if (confirm('İmtahanı silmək istədiyinizə əminsiniz?')) {
       this.examService.delete(id).subscribe({
-        next: () => {
-          this.dataSource.data = this.dataSource.data.filter(e => e.id !== id);
+        next: (res) => {
+          alert(res || 'İmtahan silindi');
+          this.loadExams();
         },
         error: (err) => {
-          this.error = 'İmtahan silmək mümkün olmadı.';
+          this.error = 'İmtahanı silmək mümkün olmadı.';
           console.error(err);
         }
       });
     }
+  }
+
+  private clearMessages(): void {
+    this.error = '';
+    this.success = '';
   }
 }

@@ -14,6 +14,8 @@ import { StudentComponent } from './pages/student/student.component';
 import { ExamComponent } from './pages/exam/exam.component';
 import { LessonComponent } from './pages/lesson/lesson.component';
 import { BlankComponent } from './pages/blank/blank.component';
+import { MatSelectModule } from '@angular/material/select';
+import { MatOptionModule } from '@angular/material/core';
 
 // Angular Material modulları
 import { MatTableModule } from '@angular/material/table';
@@ -51,7 +53,9 @@ import { MatNativeDateModule } from '@angular/material/core';
     MatButtonModule,
     MatIconModule,
     MatDatepickerModule,
-    MatNativeDateModule
+    MatNativeDateModule,
+    MatSelectModule,
+    MatOptionModule
   ],
   providers: [],
   bootstrap: [AppComponent]
