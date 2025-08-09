@@ -63,7 +63,7 @@
         <button mat-mini-fab color="primary" aria-label="Redaktə" (click)="onEdit(exam)">
           <mat-icon>edit</mat-icon>
         </button>
-        <button mat-mini-fab color="warn" aria-label="Sil" (click)="onDelete(exam.lessonCode, exam.studentNumber)">
+        <button mat-mini-fab color="warn" aria-label="Sil" (click)="onDelete( exam.studentNumber)">
           <mat-icon>delete</mat-icon>
         </button>
       </td>
@@ -102,8 +102,8 @@
 
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Sinif</mat-label>
-        <input matInput name="class" type="number" min="1" [(ngModel)]="selectedExam.class" required>
-        <mat-error *ngIf="examForm.submitted && (!selectedExam.class || selectedExam.class < 1)">Doğru sinif daxil edin</mat-error>
+        <input matInput name="class" type="number" min="1" [(ngModel)]="selectedExam.grade" required>
+        <mat-error *ngIf="examForm.submitted && (!selectedExam.grade || selectedExam.grade < 1)">Doğru sinif daxil edin</mat-error>
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="full-width">

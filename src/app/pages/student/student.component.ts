@@ -5,6 +5,8 @@ import { Student } from '../../models/student.model';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatSort } from '@angular/material/sort';
+import { catchError } from 'rxjs/operators';
+import { of } from 'rxjs';
 
 @Component({
   selector: 'app-student',
@@ -13,20 +15,21 @@ import { MatSort } from '@angular/material/sort';
 })
 export class StudentComponent implements OnInit, AfterViewInit {
 
-  displayedColumns: string[] = ['number', 'name', 'surname', 'class', 'actions'];
+  displayedColumns: string[] = ['number', 'firstName', 'lastName', 'class', 'actions'];
   dataSource = new MatTableDataSource<Student>();
 
   loading = false;
   error = '';
+  success = '';
 
   selectedStudent: Student = this.getEmptyStudent();
   isEditMode = false;
-  showForm = false;
+  isModalOpen = false;
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
-  constructor(private studentService: StudentService) {}
+  constructor(private studentService: StudentService) { }
 
   ngOnInit(): void {
     this.loadStudents();
@@ -37,31 +40,35 @@ export class StudentComponent implements OnInit, AfterViewInit {
     this.dataSource.sort = this.sort;
 
     this.dataSource.filterPredicate = (data: Student, filter: string) => {
-      const dataStr = (data.number + ' ' + data.name + ' ' + data.surname + ' ' + data.class).toLowerCase();
+      const dataStr = (
+        data.number + ' ' +
+        data.firstName + ' ' +
+        data.lastName + ' ' +
+        data.class
+      ).toLowerCase();
       return dataStr.indexOf(filter) !== -1;
     };
   }
 
   loadStudents(): void {
     this.loading = true;
-    this.error = '';
-    this.studentService.getStudents().subscribe({
-      next: (data) => {
-        this.dataSource.data = data;
-        this.loading = false;
-      },
-      error: (err) => {
-        this.error = 'Şagird məlumatlarını gətirmək mümkün olmadı.';
+    this.clearMessages();
+    this.studentService.getAll().pipe(
+      catchError(err => {
+        this.error = 'Şagirdləri gətirmək mümkün olmadı.';
         console.error(err);
         this.loading = false;
-      }
+        return of([]);
+      })
+    ).subscribe(data => {
+      this.dataSource.data = data;
+      this.loading = false;
     });
   }
 
   applyFilter(event: Event): void {
     const filterValue = (event.target as HTMLInputElement).value.trim().toLowerCase();
     this.dataSource.filter = filterValue;
-
     if (this.dataSource.paginator) {
       this.dataSource.paginator.firstPage();
     }
@@ -70,63 +77,72 @@ export class StudentComponent implements OnInit, AfterViewInit {
   getEmptyStudent(): Student {
     return {
       number: 0,
-      name: '',
-      surname: '',
+      firstName: '',
+      lastName: '',
       class: 1
     };
   }
 
-  onAddNew(): void {
+  openCreateModal(): void {
+    this.clearMessages();
     this.selectedStudent = this.getEmptyStudent();
     this.isEditMode = false;
-    this.showForm = true;
-    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    this.isModalOpen = true;
   }
 
-  onEdit(student: Student): void {
+  openEditModal(student: Student): void {
+    this.clearMessages();
     this.selectedStudent = { ...student };
     this.isEditMode = true;
-    this.showForm = true;
-    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    this.isModalOpen = true;
   }
 
-  onCancel(): void {
+  closeModal(): void {
+    this.isModalOpen = false;
     this.selectedStudent = this.getEmptyStudent();
     this.isEditMode = false;
-    this.showForm = false;
   }
 
   onSubmit(): void {
     if (this.isEditMode) {
       this.updateStudent();
     } else {
-      this.addStudent();
+      this.createStudent();
     }
   }
 
-  addStudent(): void {
-    this.studentService.addStudent(this.selectedStudent).subscribe({
-      next: (newStudent) => {
-        this.dataSource.data = [...this.dataSource.data, newStudent];
-        this.onCancel();
-      },
-      error: (err) => {
-        this.error = 'Şagird əlavə etmək mümkün olmadı.';
-        console.error(err);
-      }
-    });
+  createStudent(): void {
+  // number alanı varsa ve aynı numara kayıtlıysa hata ver
+  if (this.selectedStudent.number && 
+      this.dataSource.data.some(s => s.number === this.selectedStudent.number)) {
+    this.error = 'Bu nömrə ilə şagird artıq mövcuddur.';
+    return;
   }
 
+  // number alanını create sırasında sil (backend kendisi atayacak)
+  const payload = { ...this.selectedStudent };
+  delete payload.number;
+
+  this.studentService.create(payload as Student).subscribe({
+    next: (res) => {
+      alert(res || 'Şagird əlavə edildi');
+      this.loadStudents();
+      this.closeModal();
+    },
+    error: (err) => {
+      this.error = 'Şagird əlavə etmək mümkün olmadı.';
+      console.error(err);
+    }
+  });
+}
+
+
   updateStudent(): void {
-    this.studentService.updateStudent(this.selectedStudent).subscribe({
-      next: () => {
-        const data = this.dataSource.data;
-        const index = data.findIndex(s => s.number === this.selectedStudent.number);
-        if (index !== -1) {
-          data[index] = { ...this.selectedStudent };
-          this.dataSource.data = [...data];
-        }
-        this.onCancel();
+    this.studentService.update(this.selectedStudent).subscribe({
+      next: (res) => {
+        alert(res || 'Şagird yeniləndi');
+        this.loadStudents();
+        this.closeModal();
       },
       error: (err) => {
         this.error = 'Şagird yeniləmək mümkün olmadı.';
@@ -135,17 +151,23 @@ export class StudentComponent implements OnInit, AfterViewInit {
     });
   }
 
-  onDelete(number: number): void {
-    if (confirm('Silmək istədiyinizə əminsiniz?')) {
-      this.studentService.deleteStudent(number).subscribe({
-        next: () => {
-          this.dataSource.data = this.dataSource.data.filter(s => s.number !== number);
+  deleteStudent(number: number): void {
+    if (confirm('Şagirdi silmək istədiyinizə əminsiniz?')) {
+      this.studentService.delete(number).subscribe({
+        next: (res) => {
+          alert(res || 'Şagird silindi');
+          this.loadStudents();
         },
         error: (err) => {
-          this.error = 'Şagird silmək mümkün olmadı.';
+          this.error = 'Şagirdi silmək mümkün olmadı.';
           console.error(err);
         }
       });
     }
+  }
+
+  private clearMessages(): void {
+    this.error = '';
+    this.success = '';
   }
 }

@@ -5,4 +5,3 @@ export interface Lesson {
   teacherFirstName: string;
   teacherLastName: string;
 }
-

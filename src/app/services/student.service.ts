@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Student } from '../models/student.model'; 
+import { Student } from '../models/student.model';
 import { Observable } from 'rxjs';
 
 @Injectable({
@@ -8,24 +8,27 @@ import { Observable } from 'rxjs';
 })
 export class StudentService {
 
-  private apiUrl = 'https://localhost:7292/api/Lessons'; 
+  private apiUrl = 'https://localhost:7292/api/Students'; // API endpoint
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {}
 
-  getStudents(): Observable<Student[]> {
+  getAll(): Observable<Student[]> {
     return this.http.get<Student[]>(this.apiUrl);
   }
 
-  addStudent(student: Student): Observable<Student> {
-    return this.http.post<Student>(this.apiUrl, student);
+  getByNumber(number: number): Observable<Student> {
+    return this.http.get<Student>(`${this.apiUrl}/${number}`);
   }
 
-  updateStudent(student: Student): Observable<void> {
-    return this.http.put<void>(`${this.apiUrl}/${student.number}`, student);
+  create(student: Student, options: any = { responseType: 'text' }): Observable<any> {
+    return this.http.post(this.apiUrl, student, options);
   }
 
-  // Şagirdi sil
-  deleteStudent(number: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${number}`);
+  update(student: Student, options: any = { responseType: 'text' }): Observable<any> {
+    return this.http.put(this.apiUrl, student, options);
+  }
+
+  delete(number: number, options: any = { responseType: 'text' }): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${number}`, options);
   }
 }

@@ -14,7 +14,7 @@ import { MatSort } from '@angular/material/sort';
 export class ExamComponent implements OnInit, AfterViewInit {
 
   displayedColumns: string[] = [
-    'lessonCode', 'lessonName', 'class', 'studentNumber',
+    'lessonCode', 'lessonName', 'grade', 'studentNumber',
     'studentName', 'studentSurname', 'examDate', 'actions'
   ];
   dataSource = new MatTableDataSource<Exam>();
@@ -25,7 +25,7 @@ export class ExamComponent implements OnInit, AfterViewInit {
   selectedExam: Exam = this.getEmptyExam();
   isEditMode = false;
 
-  isModalOpen = false; // <-- Modal üçün açar bağlayıcı
+  isModalOpen = false; // Modal açar bağlayıcı
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -43,11 +43,11 @@ export class ExamComponent implements OnInit, AfterViewInit {
     this.dataSource.filterPredicate = (data: Exam, filter: string) => {
       const dataStr = (
         data.lessonCode + ' ' +
-        data.lessonName + ' ' +
-        data.class + ' ' +
+        (data.lessonName ?? '') + ' ' +
+        data.grade + ' ' +
         data.studentNumber + ' ' +
-        data.studentName + ' ' +
-        data.studentSurname
+        (data.studentName ?? '') + ' ' +
+        (data.studentSurname ?? '')
       ).toLowerCase();
       return dataStr.indexOf(filter) !== -1;
     };
@@ -56,7 +56,7 @@ export class ExamComponent implements OnInit, AfterViewInit {
   loadExams(): void {
     this.loading = true;
     this.error = '';
-    this.examService.getExams().subscribe({
+    this.examService.getAll().subscribe({
       next: (data) => {
         this.dataSource.data = data;
         this.loading = false;
@@ -86,24 +86,23 @@ export class ExamComponent implements OnInit, AfterViewInit {
 
   getEmptyExam(): Exam {
     return {
+      id: 0,
       lessonCode: '',
+      studentNumber: 0,
+      examDate: new Date().toISOString().substring(0, 10), // YYYY-MM-DD
+      grade: 0,
       lessonName: '',
-      class: 1,
-      studentNumber: 1,
       studentName: '',
-      studentSurname: '',
-      examDate: ''
+      studentSurname: ''
     };
   }
 
-  // Modal açma funksiyası (Yeni əlavə)
   openCreateModal(): void {
     this.selectedExam = this.getEmptyExam();
     this.isEditMode = false;
     this.isModalOpen = true;
   }
 
-  // Modal bağlama funksiyası (Yeni əlavə)
   closeModal(): void {
     this.isModalOpen = false;
     this.selectedExam = this.getEmptyExam();
@@ -119,10 +118,10 @@ export class ExamComponent implements OnInit, AfterViewInit {
   }
 
   addExam(): void {
-    this.examService.addExam(this.selectedExam).subscribe({
+    this.examService.create(this.selectedExam).subscribe({
       next: (newExam) => {
         this.dataSource.data = [...this.dataSource.data, newExam];
-        this.closeModal(); // Modal bağlanır əlavə edildikdən sonra
+        this.closeModal();
       },
       error: (err) => {
         this.error = 'İmtahan əlavə etmək mümkün olmadı.';
@@ -132,18 +131,15 @@ export class ExamComponent implements OnInit, AfterViewInit {
   }
 
   updateExam(): void {
-    this.examService.updateExam(this.selectedExam).subscribe({
+    this.examService.update(this.selectedExam.id, this.selectedExam).subscribe({
       next: () => {
         const data = this.dataSource.data;
-        const index = data.findIndex(e =>
-          e.lessonCode === this.selectedExam.lessonCode &&
-          e.studentNumber === this.selectedExam.studentNumber
-        );
+        const index = data.findIndex(e => e.id === this.selectedExam.id);
         if (index !== -1) {
           data[index] = { ...this.selectedExam };
           this.dataSource.data = [...data];
         }
-        this.closeModal(); // Modal bağlanır yeniləmədən sonra
+        this.closeModal();
       },
       error: (err) => {
         this.error = 'İmtahan yeniləmək mümkün olmadı.';
@@ -155,20 +151,18 @@ export class ExamComponent implements OnInit, AfterViewInit {
   onEdit(exam: Exam): void {
     this.selectedExam = { ...exam };
     this.isEditMode = true;
-    this.isModalOpen = true; // Modal açılır redaktə üçün
+    this.isModalOpen = true;
   }
 
   onCancel(): void {
     this.closeModal();
   }
 
-  onDelete(lessonCode: string, studentNumber: number): void {
+  onDelete(id: number): void {
     if (confirm('Silmək istədiyinizə əminsiniz?')) {
-      this.examService.deleteExam(lessonCode, studentNumber).subscribe({
+      this.examService.delete(id).subscribe({
         next: () => {
-          this.dataSource.data = this.dataSource.data.filter(e =>
-            !(e.lessonCode === lessonCode && e.studentNumber === studentNumber)
-          );
+          this.dataSource.data = this.dataSource.data.filter(e => e.id !== id);
         },
         error: (err) => {
           this.error = 'İmtahan silmək mümkün olmadı.';

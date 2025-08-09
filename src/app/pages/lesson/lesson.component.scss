@@ -1,37 +1,20 @@
 .lesson-container {
-  max-width: 900px;
-  margin: 20px auto;
-  font-family: Arial, sans-serif;
+  padding: 20px;
 }
 
-h2 {
-  color: #2c3e50;
-  text-align: center;
-  margin-bottom: 15px;
+.modal {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
 }
 
-.lesson-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.lesson-table th, .lesson-table td {
-  border: 1px solid #ddd;
-  padding: 8px;
-  text-align: center;
-}
-
-.lesson-table th {
-  background-color: #28a745;
-  color: white;
-}
-
-.lesson-table tr:nth-child(even) {
-  background-color: #f9f9f9;
-}
-
-.error {
-  color: red;
-  text-align: center;
-  margin: 10px 0;
+.modal-content {
+  background-color: white;
+  padding: 20px;
+  width: 400px;
+  border-radius: 8px;
 }

@@ -1,9 +1,10 @@
 export interface Exam {
+  id: number;
   lessonCode: string;
   studentNumber: number;
-  examDate: string;     
-  class: number;
-  lessonName: string;
-  studentName: string;
-  studentSurname: string;
+  examDate: string;
+  grade: number;
+  lessonName?: string;
+  studentName?: string;
+  studentSurname?: string;
 }

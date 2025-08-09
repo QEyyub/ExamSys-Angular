@@ -10,21 +10,21 @@ export class ExamService {
 
   private apiUrl = 'https://localhost:7292/api/Exams';
 
-  constructor(private http: HttpClient) { }
+    constructor(private http: HttpClient) {}
 
-  getExams(): Observable<Exam[]> {
+  getAll(): Observable<Exam[]> {
     return this.http.get<Exam[]>(this.apiUrl);
   }
 
-  addExam(exam: Exam): Observable<Exam> {
-    return this.http.post<Exam>(this.apiUrl, exam);
+  create(exam: Exam): Observable<any> {
+    return this.http.post(this.apiUrl, exam);
   }
 
-  updateExam(exam: Exam): Observable<void> {
-    return this.http.put<void>(`${this.apiUrl}/${exam.lessonCode}/${exam.studentNumber}`, exam);
+  update(id: number, exam: Exam): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${id}`, exam);
   }
 
-  deleteExam(lessonCode: string, studentNumber: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${lessonCode}/${studentNumber}`);
+  delete(id: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${id}`);
   }
 }

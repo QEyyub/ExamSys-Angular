@@ -2,32 +2,104 @@
 
   <h2>Dərslər Siyahısı</h2>
 
-  <div *ngIf="loading">Yüklənir...</div>
-  <div *ngIf="error" class="error">{{ error }}</div>
+  <button mat-raised-button color="primary" (click)="openCreateModal()">Yeni Dərs Əlavə Et</button>
 
-  <table *ngIf="!loading && !error && lessons.length > 0" class="lesson-table">
-    <thead>
-      <tr>
-        <th>Kod</th>
-        <th>Ad</th>
-        <th>Sinif</th>
-        <th>Müəllim Adı</th>
-        <th>Müəllim Soyadı</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let lesson of lessons">
-        <td>{{ lesson.code }}</td>
-        <td>{{ lesson.name }}</td>
-        <td>{{ lesson.class }}</td>
-        <td>{{ lesson.teacherFirstName }}</td>
-        <td>{{ lesson.teacherLastName }}</td>
-      </tr>
-    </tbody>
+  <mat-form-field appearance="outline" style="margin-left: 16px; width: 300px;">
+    <mat-label>Axtarış</mat-label>
+    <input matInput (keyup)="applyFilter($event)" placeholder="Axtarış...">
+  </mat-form-field>
+
+  <div *ngIf="loading" style="margin-top: 20px;">Yüklənir...</div>
+  <div *ngIf="error" class="error" style="color:red; margin-top: 20px;">{{ error }}</div>
+
+  <table mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8" *ngIf="!loading && !error">
+
+    <!-- Code Column -->
+    <ng-container matColumnDef="code">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Kod</th>
+      <td mat-cell *matCellDef="let element">{{ element.code }}</td>
+    </ng-container>
+
+    <!-- Name Column -->
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Ad</th>
+      <td mat-cell *matCellDef="let element">{{ element.name }}</td>
+    </ng-container>
+
+    <!-- Class Column -->
+    <ng-container matColumnDef="class">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Sinif</th>
+      <td mat-cell *matCellDef="let element">{{ element.class }}</td>
+    </ng-container>
+
+    <!-- Teacher First Name Column -->
+    <ng-container matColumnDef="teacherFirstName">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Müəllim Adı</th>
+      <td mat-cell *matCellDef="let element">{{ element.teacherFirstName }}</td>
+    </ng-container>
+
+    <!-- Teacher Last Name Column -->
+    <ng-container matColumnDef="teacherLastName">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Müəllim Soyadı</th>
+      <td mat-cell *matCellDef="let element">{{ element.teacherLastName }}</td>
+    </ng-container>
+
+    <!-- Actions Column -->
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef>Əməliyyatlar</th>
+      <td mat-cell *matCellDef="let element">
+        <button mat-icon-button color="primary" (click)="openEditModal(element)">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button mat-icon-button color="warn" (click)="deleteLesson(element.code)">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
   </table>
 
-  <div *ngIf="!loading && !error && lessons.length === 0">
-    Heç bir dərs tapılmadı.
+  <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
+
+  <!-- Modal -->
+  <div class="modal" *ngIf="isModalOpen">
+    <div class="modal-content">
+      <h3>{{ isEditMode ? 'Dərsi Yenilə' : 'Yeni Dərs Əlavə Et' }}</h3>
+
+      <form (ngSubmit)="onSubmit()">
+        <mat-form-field appearance="fill" style="width: 100%;">
+          <mat-label>Kod</mat-label>
+          <input matInput [(ngModel)]="selectedLesson.code" name="code" [readonly]="isEditMode" required maxlength="3" minlength="1">
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" style="width: 100%;">
+          <mat-label>Ad</mat-label>
+          <input matInput [(ngModel)]="selectedLesson.name" name="name" required maxlength="30">
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" style="width: 100%;">
+          <mat-label>Sinif</mat-label>
+          <input matInput type="number" [(ngModel)]="selectedLesson.class" name="class" required min="1" max="12">
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" style="width: 100%;">
+          <mat-label>Müəllim Adı</mat-label>
+          <input matInput [(ngModel)]="selectedLesson.teacherFirstName" name="teacherFirstName" required maxlength="20">
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" style="width: 100%;">
+          <mat-label>Müəllim Soyadı</mat-label>
+          <input matInput [(ngModel)]="selectedLesson.teacherLastName" name="teacherLastName" required maxlength="20">
+        </mat-form-field>
+
+        <div style="margin-top: 16px; text-align: right;">
+          <button mat-stroked-button color="primary" type="submit">{{ isEditMode ? 'Yenilə' : 'Əlavə Et' }}</button>
+          <button mat-button type="button" (click)="closeModal()">Ləğv et</button>
+        </div>
+      </form>
+    </div>
   </div>
 
 </div>

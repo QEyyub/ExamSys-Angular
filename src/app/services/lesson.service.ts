@@ -8,27 +8,27 @@ import { Lesson } from '../models/lesson.model';
 })
 export class LessonService {
 
-  private apiUrl = 'https://localhost:7292/api/Lessons'; // Backend URL-nu özünə uyğun dəyiş
+  private apiUrl = 'https://localhost:7292/api/Lessons'; // Öz API ünvanın
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {}
 
-  // Bütün dərsləri gətir
-  getLessons(): Observable<Lesson[]> {
+  getAll(): Observable<Lesson[]> {
     return this.http.get<Lesson[]>(this.apiUrl);
   }
 
-  // Yeni dərs əlavə et
-  addLesson(lesson: Lesson): Observable<Lesson> {
-    return this.http.post<Lesson>(this.apiUrl, lesson);
+  getByCode(code: string): Observable<Lesson> {
+    return this.http.get<Lesson>(`${this.apiUrl}/${code}`);
   }
 
-  // Mövcud dərsi yenilə
-  updateLesson(lesson: Lesson): Observable<void> {
-    return this.http.put<void>(`${this.apiUrl}/${lesson.code}`, lesson);
+  create(lesson: Lesson, options: any = { responseType: 'text' }): Observable<any> {
+    return this.http.post(this.apiUrl, lesson, options);
   }
 
-  // Dərsi sil
-  deleteLesson(code: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${code}`);
+  update(lesson: Lesson, options: any = { responseType: 'text' }): Observable<any> {
+    return this.http.put(this.apiUrl, lesson, options);
+  }
+
+  delete(code: string, options: any = { responseType: 'text' }): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${code}`, options);
   }
 }
