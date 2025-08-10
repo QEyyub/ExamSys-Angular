@@ -8,7 +8,7 @@ import { Lesson } from '../models/lesson.model';
 })
 export class LessonService {
 
-  private apiUrl = 'https://localhost:7292/api/Lessons'; // Öz API ünvanın
+  private apiUrl = 'https://localhost:7292/api/Lessons';
 
   constructor(private http: HttpClient) {}
 

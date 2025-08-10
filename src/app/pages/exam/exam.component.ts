@@ -26,7 +26,6 @@ export class ExamComponent implements OnInit, AfterViewInit {
   isEditMode = false;
   isModalOpen = false;
 
-  // ✅ Eklendi: geçerli lesson ve student listeleri
   validLessonCodes: string[] = [];
   validStudentNumbers: number[] = [];
 
@@ -37,7 +36,7 @@ export class ExamComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.loadExams();
-    this.loadValidData(); // ✅ Eklendi
+    this.loadValidData();
   }
 
   ngAfterViewInit(): void {
@@ -108,13 +107,6 @@ export class ExamComponent implements OnInit, AfterViewInit {
     this.isModalOpen = true;
   }
 
-  openEditModal(exam: Exam): void {
-    this.clearMessages();
-    this.selectedExam = { ...exam };
-    this.isEditMode = true;
-    this.isModalOpen = true;
-  }
-
   closeModal(): void {
     this.isModalOpen = false;
     this.selectedExam = this.getEmptyExam();
@@ -129,75 +121,89 @@ export class ExamComponent implements OnInit, AfterViewInit {
     }
   }
 
-  createExam(): void {
-    this.clearMessages();
+createExam(): void {
+  this.clearMessages();
 
-    if (!this.validLessonCodes.includes(this.selectedExam.lessonCode)) {
-      this.error = 'Böyle bir ders kodu bulunamadı.';
-      return;
+const payload = {
+  lessonCode: this.selectedExam.lessonCode,
+  studentNumber: this.selectedExam.studentNumber,
+  examDate: this.selectedExam.examDate.split('T')[0], 
+  grade: this.selectedExam.grade
+};
+
+
+this.examService.create(payload as Exam).subscribe({
+  next: (res) => {
+    console.log('Full Response:', res);
+    alert(res.body || 'İmtahan əlavə edildi');
+    this.loadExams();
+    this.closeModal();
+  },
+  error: (err) => {
+    console.error('Error Response:', err);
+    this.error = err.error?.message || 'İmtahan əlavə etmək mümkün olmadı.';
+  }
+});
+
+}
+
+openEditModal(exam: Exam): void {
+  this.clearMessages();
+  this.selectedExam = {
+    id: exam.id,
+    lessonCode: exam.lessonCode,
+    studentNumber: exam.studentNumber,
+    examDate: exam.examDate ? exam.examDate.split('T')[0] : '',
+    grade: exam.grade,
+    oldLessonCode: exam.lessonCode,     // ✅ artıq modeldə var
+    oldStudentNumber: exam.studentNumber
+  };
+  this.isEditMode = true;
+  this.isModalOpen = true;
+}
+
+updateExam(): void {
+  if (!this.selectedExam.oldLessonCode || this.selectedExam.oldStudentNumber === undefined) {
+    this.error = 'Köhnə dəyərlər tapılmadı, yeniləmə mümkün deyil.';
+    return;
+  }
+
+  const payload: Exam = {
+    ...this.selectedExam,
+    examDate: this.selectedExam.examDate.split('T')[0] 
+  };
+
+  this.examService.update(
+    this.selectedExam.oldLessonCode,
+    this.selectedExam.oldStudentNumber,
+    payload
+  ).subscribe({
+    next: (message) => {
+      alert(message);
+      this.loadExams();
+      this.closeModal();
+    },
+    error: (err) => {
+      console.error(err);
+      this.error = err.error || 'İmtahan yeniləmək mümkün olmadı.';
     }
-    if (!this.validStudentNumbers.includes(this.selectedExam.studentNumber)) {
-      this.error = 'Böyle bir öğrenci numarası bulunamadı.';
-      return;
-    }
+  });
+}
 
-    const payload = {
-      lessonCode: this.selectedExam.lessonCode,
-      studentNumber: this.selectedExam.studentNumber,
-      examDate: this.selectedExam.examDate,
-      grade: this.selectedExam.grade
-    };
-
-    this.examService.create(payload as Exam).subscribe({
+deleteExam(lessonCode: string, studentNumber: number): void {
+  if (confirm('İmtahanı silmək istədiyinizə əminsiniz?')) {
+    this.examService.delete(lessonCode, studentNumber).subscribe({
       next: (res) => {
-        alert(res || 'İmtahan əlavə edildi');
+        alert(res || 'İmtahan silindi');
         this.loadExams();
-        this.closeModal();
       },
       error: (err) => {
-        if (err.error && err.error.message) {
-          this.error = err.error.message;
-        } else {
-          this.error = 'İmtahan əlavə etmək mümkün olmadı.';
-        }
+        this.error = 'İmtahanı silmək mümkün olmadı.';
         console.error(err);
       }
     });
   }
-
-  updateExam(): void {
-    this.examService.update(this.selectedExam).subscribe({
-      next: (res) => {
-        alert(res || 'İmtahan yeniləndi');
-        this.loadExams();
-        this.closeModal();
-      },
-      error: (err) => {
-        if (err.error && err.error.message) {
-          this.error = err.error.message;
-        } else {
-          this.error = 'İmtahan yeniləmək mümkün olmadı.';
-        }
-        console.error(err);
-      }
-    });
-  }
-
-  deleteExam(id: number): void {
-    if (confirm('İmtahanı silmək istədiyinizə əminsiniz?')) {
-      this.examService.delete(id).subscribe({
-        next: (res) => {
-          alert(res || 'İmtahan silindi');
-          this.loadExams();
-        },
-        error: (err) => {
-          this.error = 'İmtahanı silmək mümkün olmadı.';
-          console.error(err);
-        }
-      });
-    }
-  }
-
+}
   private clearMessages(): void {
     this.error = '';
     this.success = '';

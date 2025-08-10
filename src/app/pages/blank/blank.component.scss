@@ -1,0 +1,70 @@
+.blank-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: calc(100vh - 60px);
+  background: radial-gradient(circle at 30% 30%, #f0f4f8, #dbeafe, #f0f4f8);
+  background-size: 300% 300%;
+  animation: chaoticBackground 20s ease-in-out infinite;
+  padding: 20px;
+}
+
+.blank-content {
+  text-align: center;
+  animation: fadeUp 1s ease-out forwards;
+}
+
+.blank-icon {
+  margin-bottom: 20px;
+  animation: floatIcon 3s ease-in-out infinite;
+}
+
+.blank-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 8px;
+}
+
+.blank-subtitle {
+  font-size: 16px;
+  color: #64748b;
+}
+
+/* İkon yuxarı-aşağı dalğalanma */
+@keyframes floatIcon {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+  100% { transform: translateY(0); }
+}
+
+/* Mətni yavaş çıxarma effekti */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Xaotik fon animasiyası */
+@keyframes chaoticBackground {
+  0%   { background-position: 0% 0%; }
+  10%  { background-position: 80% 20%; }
+  20%  { background-position: 30% 90%; }
+  30%  { background-position: 100% 60%; }
+  40%  { background-position: 10% 30%; }
+  50%  { background-position: 90% 100%; }
+  60%  { background-position: 40% 10%; }
+  70%  { background-position: 70% 80%; }
+  80%  { background-position: 20% 40%; }
+  90%  { background-position: 100% 0%; }
+  100% { background-position: 0% 0%; }
+}
+
+/* Mobil uyğunluq */
+@media (max-width: 500px) {
+  .blank-title {
+    font-size: 22px;
+  }
+  .blank-subtitle {
+    font-size: 14px;
+  }
+}

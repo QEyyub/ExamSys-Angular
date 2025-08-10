@@ -7,4 +7,7 @@ export interface Exam {
   lessonName?: string;
   studentName?: string;
   studentSurname?: string;
+
+  oldLessonCode?: string;
+  oldStudentNumber?: number;
 }

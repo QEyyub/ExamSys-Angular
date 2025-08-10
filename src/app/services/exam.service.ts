@@ -20,23 +20,28 @@ export class ExamService {
     return this.http.get<Exam>(`${this.apiUrl}/${id}`);
   }
 
-  create(exam: Exam, options: any = { responseType: 'text' }): Observable<any> {
-    return this.http.post(this.apiUrl, exam, options);
-  }
+create(exam: Exam, options: any = {}): Observable<any> {
+  return this.http.post(this.apiUrl, exam, { ...options, observe: 'response' });
+}
 
-  update(exam: Exam, options: any = { responseType: 'text' }): Observable<any> {
-    return this.http.put(this.apiUrl, exam, options);
-  }
+update(oldLessonCode: string, oldStudentNumber: number, exam: Exam): Observable<string> {
+  return this.http.put(
+    `${this.apiUrl}/${oldLessonCode}/${oldStudentNumber}`,
+    exam,
+    { responseType: 'text' }
+  );
+}
 
-  delete(id: number, options: any = { responseType: 'text' }): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${id}`, options);
-  }
+
+delete(lessonCode: string, studentNumber: number, options: any = { responseType: 'text' }): Observable<any> {
+  return this.http.delete(`${this.apiUrl}?lessonCode=${lessonCode}&studentNumber=${studentNumber}`, options);
+}
 
   getLessonCodes(): Observable<string[]> {
     return this.http.get<string[]>('https://localhost:7292/api/Lessons/codes');
   }
 
   getStudentNumbers(): Observable<number[]> {
-    return this.http.get<number[]>('https://localhost:7292/api/Students/name');
+    return this.http.get<number[]>('https://localhost:7292/api/Students/numbers');
   }
 }

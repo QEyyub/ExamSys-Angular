@@ -112,14 +112,12 @@ export class StudentComponent implements OnInit, AfterViewInit {
   }
 
   createStudent(): void {
-  // number alanı varsa ve aynı numara kayıtlıysa hata ver
   if (this.selectedStudent.number && 
       this.dataSource.data.some(s => s.number === this.selectedStudent.number)) {
     this.error = 'Bu nömrə ilə şagird artıq mövcuddur.';
     return;
   }
 
-  // number alanını create sırasında sil (backend kendisi atayacak)
   const payload = { ...this.selectedStudent };
   delete payload.number;
 

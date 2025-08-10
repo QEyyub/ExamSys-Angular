@@ -14,40 +14,36 @@
 
   <table mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8" *ngIf="!loading && !error">
 
-    <!-- Lesson Code -->
     <ng-container matColumnDef="lessonCode">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>Dərs Kodu</th>
       <td mat-cell *matCellDef="let element">{{ element.lessonCode }}</td>
     </ng-container>
 
-    <!-- Student Number -->
     <ng-container matColumnDef="studentNumber">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>Şagird No</th>
       <td mat-cell *matCellDef="let element">{{ element.studentNumber }}</td>
     </ng-container>
 
-    <!-- Exam Date -->
     <ng-container matColumnDef="examDate">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>İmtahan Tarixi</th>
       <td mat-cell *matCellDef="let element">{{ element.examDate | date }}</td>
     </ng-container>
 
-    <!-- Grade -->
     <ng-container matColumnDef="grade">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>Qiymət</th>
       <td mat-cell *matCellDef="let element">{{ element.grade }}</td>
     </ng-container>
 
-    <!-- Actions -->
     <ng-container matColumnDef="actions">
       <th mat-header-cell *matHeaderCellDef>Əməliyyatlar</th>
       <td mat-cell *matCellDef="let element">
         <button mat-icon-button color="primary" (click)="openEditModal(element)">
           <mat-icon>edit</mat-icon>
         </button>
-        <button mat-icon-button color="warn" (click)="deleteExam(element.id)">
-          <mat-icon>delete</mat-icon>
-        </button>
+<button mat-icon-button color="warn" (click)="deleteExam(element.lessonCode, element.studentNumber)">
+  <mat-icon>delete</mat-icon>
+</button>
+
       </td>
     </ng-container>
 
@@ -57,20 +53,16 @@
 
   <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
 
-  <!-- Modal -->
-<!-- Modal -->
 <div class="modal" *ngIf="isModalOpen">
   <div class="modal-content">
     <h3>{{ isEditMode ? 'İmtahanı Yenilə' : 'Yeni İmtahan Əlavə Et' }}</h3>
 
-    <!-- ✅ Hata mesajını modal içinde göster -->
     <div *ngIf="error" style="color: red; margin-bottom: 10px;">
       {{ error }}
     </div>
 
     <form (ngSubmit)="onSubmit()">
 
-      <!-- Ders Kodu Dropdown -->
       <mat-form-field appearance="fill" style="width: 100%;">
         <mat-label>Dərs Kodu</mat-label>
         <mat-select [(ngModel)]="selectedExam.lessonCode" name="lessonCode" required>
@@ -80,7 +72,6 @@
         </mat-select>
       </mat-form-field>
 
-      <!-- Öğrenci Numarası Dropdown -->
       <mat-form-field appearance="fill" style="width: 100%;">
         <mat-label>Şagird Nömrəsi</mat-label>
         <mat-select [(ngModel)]="selectedExam.studentNumber" name="studentNumber" required>
@@ -90,13 +81,11 @@
         </mat-select>
       </mat-form-field>
 
-      <!-- İmtahan Tarihi -->
       <mat-form-field appearance="fill" style="width: 100%;">
         <mat-label>İmtahan Tarixi</mat-label>
         <input matInput type="date" [(ngModel)]="selectedExam.examDate" name="examDate" required>
       </mat-form-field>
 
-      <!-- Not -->
       <mat-form-field appearance="fill" style="width: 100%;">
         <mat-label>Qiymət</mat-label>
         <input matInput type="number" [(ngModel)]="selectedExam.grade" name="grade" required min="0" max="100">
@@ -109,6 +98,4 @@
     </form>
   </div>
 </div>
-
-
 </div>
