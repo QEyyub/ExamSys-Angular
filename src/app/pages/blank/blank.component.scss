@@ -31,20 +31,17 @@
   color: #64748b;
 }
 
-/* İkon yuxarı-aşağı dalğalanma */
 @keyframes floatIcon {
   0% { transform: translateY(0); }
   50% { transform: translateY(-6px); }
   100% { transform: translateY(0); }
 }
 
-/* Mətni yavaş çıxarma effekti */
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Xaotik fon animasiyası */
 @keyframes chaoticBackground {
   0%   { background-position: 0% 0%; }
   10%  { background-position: 80% 20%; }
@@ -59,7 +56,6 @@
   100% { background-position: 0% 0%; }
 }
 
-/* Mobil uyğunluq */
 @media (max-width: 500px) {
   .blank-title {
     font-size: 22px;
